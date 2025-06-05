@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  name         String
+  email        String  @unique
+  password     String
+  isAdmin      Boolean @default(false)
+  joinedEvent  Boolean @default(false)
+  message      String?
+  matches1     Match[] @relation("ParticipantOne")
+  matches2     Match[] @relation("ParticipantTwo")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Match {
+  id                  Int     @id @default(autoincrement())
+  participant_one_id  Int
+  participant_two_id  Int
+  ParticipantOne      User    @relation("ParticipantOne", fields: [participant_one_id], references: [id])
+  ParticipantTwo      User    @relation("ParticipantTwo", fields: [participant_two_id], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([participant_one_id])
+  @@index([participant_two_id])
+  @@map("matches")
+}
