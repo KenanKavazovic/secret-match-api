@@ -37,7 +37,7 @@ export class MatchesService {
       matchedUserIds.add(match.participant_one_id);
       matchedUserIds.add(match.participant_two_id);
     }
-    
+
     const participants = await this.prisma.user.findMany({
       where: {
         joinedEvent: true,
@@ -80,6 +80,49 @@ export class MatchesService {
     return {
       message: 'Participants matched in pairs.',
       unmatched: unmatchedUser ? `${unmatchedUser} was not matched due to an odd number of participants.` : null,
+    };
+  }
+
+  async getUserMatch(userId: number) {
+    const match = await this.prisma.match.findFirst({
+      where: {
+        OR: [
+          { participant_one_id: userId },
+          { participant_two_id: userId },
+        ],
+      },
+      include: {
+        ParticipantOne: {
+          select: { id: true, name: true, email: true, message: true },
+        },
+        ParticipantTwo: {
+          select: { id: true, name: true, email: true, message: true },
+        },
+      },
+    });
+
+    if (!match) {
+      throw new NotFoundException('No match found for this user.');
+    }
+
+    const yourRole = match.participant_one_id === userId ? 'ParticipantOne' : 'ParticipantTwo';
+    const yourMatch = yourRole === 'ParticipantOne' ? match.ParticipantTwo : match.ParticipantOne;
+
+    return {
+      yourMatch: {
+        matchId: match.id,
+        userId: yourMatch.id,
+        name: yourMatch.name,
+        email: yourMatch.email,
+        message: yourMatch.message ?? 'No message',
+      },
+      matchedAt: match.createdAt.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
     };
   }
 }

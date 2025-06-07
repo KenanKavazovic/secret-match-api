@@ -1,4 +1,4 @@
-import { Controller, Post, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Req, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -20,5 +20,11 @@ export class MatchesController {
   @Post('assign')
   async assignMatches(@Req() req: UserRequest) {
     return this.matchesService.assignMatches();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('view')
+  async getMatch(@Req() req: UserRequest) {
+    return this.matchesService.getUserMatch(req.user.id);
   }
 }
