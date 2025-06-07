@@ -13,6 +13,11 @@ POST http://localhost:8080/users/login
 Content-Type: application/json
 
 {
-  "email": "kenan@mail.com",
-  "password": "Kenan123"
+  "email": "user@mail.com",
+  "password": "User123"
 }
+
+### Join Secret Match Event
+POST http://localhost:8080/match/join
+Content-Type: application/json
+Authorization: Bearer {}
