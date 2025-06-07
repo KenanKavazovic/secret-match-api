@@ -3,9 +3,15 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { MatchesModule } from './matches/matches.module';
 import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, UsersModule, MatchesModule, DatabaseModule],
+  imports: [AuthModule, UsersModule, MatchesModule, DatabaseModule,
+      ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [`.env`],
+    }),
+  ],
   controllers: [],
   providers: [],
 })
