@@ -3,8 +3,8 @@ POST http://localhost:8080/users/register HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "User8",
-  	"email": "user8@mail.com",
+    "name": "User10",
+  	"email": "user10@mail.com",
   	"password": "User123"
 }
 

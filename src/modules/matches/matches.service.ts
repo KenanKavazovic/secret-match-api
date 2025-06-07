@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Match } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class MatchesService {
-  constructor(private readonly prisma: DatabaseService) {}
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly mailService: MailService
+  ) {}
 
   async joinEvent(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -55,7 +58,7 @@ export class MatchesService {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    const matchPromises: Promise<Match>[] = [];
+    const matchPromises: Promise<void>[] = [];
     let unmatchedUser: string | null = null;
 
     if (shuffled.length % 2 !== 0) {
@@ -67,12 +70,20 @@ export class MatchesService {
       const participant1 = shuffled[i];
       const participant2 = shuffled[i + 1];
 
-      matchPromises.push(this.prisma.match.create({
-        data: {
-          participant_one_id: participant1.id,
-          participant_two_id: participant2.id,
-        },
-      }));
+      const createAndNotify = async () => {
+        await this.prisma.match.create({
+          data: {
+            participant_one_id: participant1.id,
+            participant_two_id: participant2.id,
+          },
+        });
+
+        //Not awaiting to speed up responses since I'm not using queues for such a small scale
+        this.mailService.sendMatchEmail(participant1.email, participant2.name);
+        this.mailService.sendMatchEmail(participant2.email, participant1.name);
+      };
+
+      matchPromises.push(createAndNotify());
     }
 
     await Promise.all(matchPromises);
